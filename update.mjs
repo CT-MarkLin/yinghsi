@@ -1,10 +1,9 @@
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { JSDOM } from "jsdom";
 import { Low } from "lowdb";
 import { JSONFile } from "lowdb/node";
-import { getWujinList } from "./index.mjs";
+import { getWujinList, sleep } from "./common.mjs";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const file = join(__dirname, "db.json");
@@ -19,13 +18,15 @@ const lastTime = wujin.lastTime;
 
 async function updateFetch(startPage = 1) {
   const nextTimestamp = new Date().valueOf();
+  let isBreak = false;
   for (let i = startPage; i < 100; i++) {
     console.log(
       `---------------${i} start ${new Date().toLocaleTimeString()}---------------`
     );
     const result = await getWujinList(i);
-
-    for (item in result.filter((item) => item)) {
+    const tempArr = result.filter((item) => item);
+    for (let i in tempArr) {
+      const item = tempArr[i];
       const { name, href, type, lastUpdateTime } = item;
       const tempTimestamp = new Date(lastUpdateTime).valueOf();
       if (tempTimestamp < lastTime) {
@@ -33,6 +34,7 @@ async function updateFetch(startPage = 1) {
         console.log(
           `------break in ${name} ${lastUpdateTime}------`
         );
+        isBreak = true;
         break;
       }
       wujin.data[href] = { name, type, lastUpdateTime };
@@ -42,6 +44,9 @@ async function updateFetch(startPage = 1) {
     console.log(
       `---------------${i} end ${new Date().toLocaleTimeString()}---------------`
     );
+    if (isBreak) {
+        break;
+    }
     await sleep(4);
   }
 }
