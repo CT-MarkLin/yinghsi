@@ -1,63 +1,123 @@
 <html>
   <head>
     <script src="https://cdn.jsdelivr.net/npm/systemjs/dist/system.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
     <style>
-        #root {
-            width: 80%;
-            max-width: 1200px;
-            max-height: 80%;
-            overflow: auto;
-            border: 1px solid #a1a1a1;
-            border-radius: 6px;
-            padding: 8px;
-        }
-        td {
-            white-space: nowrap;
-            padding: 4px 8px;
-        }
-        td.link {
-            width: 40%;
-            max-width: 300px;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-        .filter-bar {
-            width: 50%;
-            max-width: 600px;
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 20px;
-        }
-        #searchInput {
-            height: 48px;
-            line-height: 48px;
-            font-size: 28px;
-        }
-        #searchButton {
-            height: 48px;
-            line-height: 48px;
-            font-size: 28px;
-        }
+      #root {
+        width: 80%;
+        max-width: 1200px;
+        max-height: 80%;
+        overflow: auto;
+        border: 1px solid #a1a1a1;
+        border-radius: 6px;
+        padding: 8px;
+      }
+      td {
+        white-space: nowrap;
+        padding: 4px 8px;
+      }
+      td.link {
+        width: 40%;
+        max-width: 300px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .filter-bar {
+        width: 50%;
+        max-width: 600px;
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 20px;
+      }
+      #searchInput {
+        height: 48px;
+        line-height: 48px;
+        font-size: 28px;
+      }
+      #searchButton {
+        height: 48px;
+        line-height: 48px;
+        font-size: 28px;
+      }
+      #play-info {
+        margin: 20px auto;
+        width: 100%;
+      }
+      #video {
+        width: 75%;
+      }
+      .eption {
+        padding: 2px 4px;
+      }
     </style>
   </head>
   <body>
     <div class="filter-bar">
-        <input placeholder="输入影片名" id="searchInput" />
-        <button id="searchButton">Search</button>
+      <input placeholder="输入影片名" id="searchInput" />
+      <button id="searchButton">Search</button>
     </div>
     <div id="root"></div>
-    <!-- <video src="https://new.qqaku.com/20221219/7n2fJLK7/index.m3u8"></video> -->
+    <div id="play-info">
+      <div id="current-video-info"></div>
+      <video id="video" controls></video>
+    </div>
     <script>
+      // common variables
       let data = [];
       let renderData = [];
       let propertyList = [];
       const $root = document.getElementById("root");
       const $input = document.getElementById("searchInput");
       const $search = document.getElementById("searchButton");
+      const $video = document.getElementById("video");
+      const $videoInfo = document.getElementById("current-video-info");
+      let loadVideo;
 
+      if (Hls.isSupported()) {
+        const hls = new Hls();
+        hls.attachMedia($video);
+
+        hls.on(Hls.Events.MEDIA_ATTACHED, () => {
+          loadVideo = (url) => {
+            hls.loadSource(url);
+          };
+        });
+      }
+
+      const getDataFromArray = (itemData, key) => {
+        const ind = propertyList.indexOf(key);
+        return itemData[ind] || "";
+      };
+    </script>
+    <script>
       $search.onclick = () => {
         const value = $input.value;
-        render(renderData.filter(item => item.data[1].includes(value)).slice(0, 100));
+        render(
+          renderData
+            .filter((item) => item.data[1].includes(value))
+            .slice(0, 100)
+        );
+      };
+
+      const onItemClick = (id) => {
+        // console.log(id, "id", renderData)
+        const currentData = renderData.find((item) => item.id == id).data;
+        const descript = getDataFromArray(currentData, "vod_blurb");
+        const tempUrl = getDataFromArray(currentData, "vod_play_url");
+        const urls = tempUrl.split("#").map((item) => item.split("$"));
+        console.log(urls, "urls")
+        $videoInfo.innerHTML = `
+            <h4>${currentData[1]}</h4>
+            <p>${descript}</p>
+            <div class="">
+                ${urls
+                  .map(
+                    (item) =>
+                      `<a class="eption" onclick="loadVideo('${item[1]}')" href="#${id}/${item[0]}">${item[0]}</a>`
+                  )
+                  .join("")}
+            </div>
+        `;
       };
 
       function render(tempData = []) {
@@ -65,37 +125,44 @@
             <table>
             <tbody>
                 ${tempData
-                .map((item, index) => {
+                  .map((item, index) => {
                     return `
-                        <tr>
+                        <tr data-id="${item.data[0]}">
                             <td>${index + 1}</td>
                             <td class="link">
-                                <a href="#${item.data[0]}">
+                                <a onclick="onItemClick(${
+                                  item.data[0]
+                                })" href="#${item.data[0]}">
                                     ${item.data[1]}
                                 </a>
                             </td>
                             <td>${item.data[2]}</td>
                             <td>${item.data[3]}</td>
+                            <td>${getDataFromArray(item.data, "vod_year")}</td>
                         </tr>
                     `;
-                })
-                .join("")}
+                  })
+                  .join("")}
             </tbody>
             </table>
         `;
       }
 
-
-      System.import("https://ct-marklin.github.io/yinghsi/static/animation.json").then(
-        function (module) {
-          data = module.default.data;
-          propertyList = module.default.propertyList;
-          const keys = Object.keys(data);
-          renderData = keys
-            .map((key) => ({ id: key, data: JSON.parse(data[key]) }))
-          render(renderData.slice(0, 100));
-        }
-      );
+      System.import(
+        "https://ct-marklin.github.io/yinghsi/static/animation.json"
+      ).then(function (module) {
+        data = module.default.data;
+        propertyList = module.default.propertyList;
+        const keys = Object.keys(data);
+        renderData = keys.map((key) => ({
+          id: key,
+          data: JSON.parse(data[key]),
+        }));
+        render(renderData.slice(0, 100));
+        // if (loadVideo) {
+        //   loadVideo("https://new.qqaku.com/20220715/mHbbdXI0/index.m3u8");
+        // }
+      });
     </script>
   </body>
 </html>

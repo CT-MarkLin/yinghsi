@@ -4,6 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "update": "node db2_update.mjs && node db2_split.mjs",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
