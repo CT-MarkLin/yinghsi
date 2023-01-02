@@ -50,13 +50,14 @@
     <script>
       let data = [];
       let renderData = [];
+      let propertyList = [];
       const $root = document.getElementById("root");
       const $input = document.getElementById("searchInput");
       const $search = document.getElementById("searchButton");
 
       $search.onclick = () => {
         const value = $input.value;
-        render(renderData.filter(item => item.name.includes(value)).slice(0, 100));
+        render(renderData.filter(item => item.data[1].includes(value)).slice(0, 100));
       };
 
       function render(tempData = []) {
@@ -69,12 +70,12 @@
                         <tr>
                             <td>${index + 1}</td>
                             <td class="link">
-                                <a target="_bland" href="https://www.wujinzy.com/index.php/vod/detail/id/${item.id}.html">
-                                    ${item.name}
+                                <a href="#${item.data[0]}">
+                                    ${item.data[1]}
                                 </a>
                             </td>
-                            <td>${item.type}</td>
-                            <td>${item.lastUpdateTime}</td>
+                            <td>${item.data[2]}</td>
+                            <td>${item.data[3]}</td>
                         </tr>
                     `;
                 })
@@ -84,32 +85,17 @@
         `;
       }
 
-      function getDetail(id) {
-        // fetch(`https://yingshi.deno.dev/${id}`).then(res => res.text()).then(html => {
-        //     const regLink = /\/>.+?\$https.+?</g;
-        //     const temp = html.match(regLink) || [];
-        //     const result = temp
-        //         .filter((item) => !item.includes(".m3u8"))
-        //         .map((item) => item.replace("/>", "").replace("<", "").split("$"));
-        //     console.log(result);
-        // })
-        System.import("https://api.wujinapi.me/api.php/provide/vod/123.json?ac=detail&ids=48367").then(res => {
-            console.log(res, "232432");
-        })
-      }
-      getDetail("48367");
 
-    //   System.import("https://ct-marklin.github.io/yinghsi/db.json").then(
-    //     function (module) {
-    //       data = module.default.wujin.data;
-    //       const keys = Object.keys(data);
-    //       renderData = keys
-    //         .map((key) => ({ ...data[key], id: key }))
-    //         .filter((item) => !item.type.includes("理"))
-    //         .sort((a, b) => a.lastUpdateTime < b.lastUpdateTime ? 1: -1);
-    //       render(renderData.slice(0, 100));
-    //     }
-    //   );
+      System.import("https://ct-marklin.github.io/yinghsi/static/animation.json").then(
+        function (module) {
+          data = module.default.data;
+          propertyList = module.default.propertyList;
+          const keys = Object.keys(data);
+          renderData = keys
+            .map((key) => ({ id: key, data: JSON.parse(data[key]) }))
+          render(renderData.slice(0, 100));
+        }
+      );
     </script>
   </body>
 </html>
