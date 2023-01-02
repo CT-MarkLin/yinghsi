@@ -150,6 +150,47 @@ export const propertyList = [
   "vod_year",
 ];
 
+const typeList = [
+  { "type_id": 1, "type_name": "电影" },
+  { "type_id": 2, "type_name": "连续剧" },
+  { "type_id": 3, "type_name": "综艺" },
+  { "type_id": 4, "type_name": "动漫" },
+  { "type_id": 5, "type_name": "资讯" },
+  { "type_id": 6, "type_name": "动作片" },
+  { "type_id": 7, "type_name": "喜剧片" },
+  { "type_id": 8, "type_name": "爱情片" },
+  { "type_id": 9, "type_name": "科幻片" },
+  { "type_id": 10, "type_name": "恐怖片" },
+  { "type_id": 11, "type_name": "剧情片" },
+  { "type_id": 12, "type_name": "战争片" },
+  { "type_id": 13, "type_name": "国产剧" },
+  { "type_id": 14, "type_name": "香港剧" },
+  { "type_id": 15, "type_name": "台湾剧" },
+  { "type_id": 16, "type_name": "美国剧" },
+  { "type_id": 17, "type_name": "公告" },
+  { "type_id": 18, "type_name": "头条" },
+  { "type_id": 20, "type_name": "伦理片" },
+  { "type_id": 21, "type_name": "纪录片" },
+  { "type_id": 22, "type_name": "韩国剧" },
+  { "type_id": 23, "type_name": "日本剧" },
+  { "type_id": 24, "type_name": "海外剧" },
+  { "type_id": 25, "type_name": "大陆综艺" },
+  { "type_id": 26, "type_name": "日韩综艺" },
+  { "type_id": 27, "type_name": "港台综艺" },
+  { "type_id": 28, "type_name": "欧美综艺" },
+  { "type_id": 29, "type_name": "国产动漫" },
+  { "type_id": 30, "type_name": "日韩动漫" },
+  { "type_id": 31, "type_name": "欧美动漫" },
+  { "type_id": 32, "type_name": "悬疑片" },
+  { "type_id": 33, "type_name": "动画片" },
+  { "type_id": 34, "type_name": "犯罪片" },
+  { "type_id": 35, "type_name": "奇幻片" },
+  { "type_id": 36, "type_name": "邵氏电影" },
+  { "type_id": 37, "type_name": "泰剧" },
+  { "type_id": 38, "type_name": "体育赛事" },
+  { "type_id": 39, "type_name": "体育赛事" }
+]
+
 
 // 参考： https://github.com/imfht/maccms/blob/master/%E4%BD%BF%E7%94%A8%E8%AF%B4%E6%98%8E%E6%96%87%E6%A1%A3/API%E6%8E%A5%E5%8F%A3%E8%AF%B4%E6%98%8E.txt
 // 内容接收参数：
