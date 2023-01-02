@@ -52,3 +52,22 @@ export async function getWujindetail(id = "") {
     .filter((item) => !item.includes(".m3u8"))
     .map((item) => item.replace("/>", "").replace("<", "").split("$"));
 }
+
+
+// 参考： https://github.com/imfht/maccms/blob/master/%E4%BD%BF%E7%94%A8%E8%AF%B4%E6%98%8E%E6%96%87%E6%A1%A3/API%E6%8E%A5%E5%8F%A3%E8%AF%B4%E6%98%8E.txt
+// 内容接收参数：
+// ac=videolist 采集数据
+// 参数 ids=数据ID，多个ID逗号分割。
+//      t=类型ID
+//      pg=页码
+//      h=几小时内的数据
+
+
+// 列表接收参数：
+// ac=list
+// t=类别ID
+// pg=页码
+// wd=搜索关键字
+// h=几小时内的数据
+// 例如： api.php?ac=list&t=1&pg=5   分类ID为1的列表数据第5页
+
