@@ -43,8 +43,15 @@
         width: 75%;
         margin-top: 10px;
       }
+      .eption-wrapper {
+        width: 90%;
+        margin: 10px 0;
+        display: flex;
+        justify-content: flex-start;
+        flex-wrap: wrap;
+      }
       .eption {
-        padding: 2px 4px;
+        padding: 2px 8px;
       }
       #navigator {
         width: 50%;
@@ -53,8 +60,43 @@
         font-size: 20px;
         margin-bottom: 10px;
       }
+      .video-detail {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+      }
+      .video-detail img {
+        width: 30%;
+        max-width: 200px;
+        object-fit: contain;
+        border: 1px solid #aaa;
+        margin-right: 12px;
+      }
       .active {
         background-color: yellowgreen;
+      }
+      @media screen and (max-width: 600px) {
+        * {
+          font-size: 20px;
+          box-sizing: border-box;
+        }
+        #root {
+          width: 100%;
+          max-width: 1200px;
+          height: 50%;
+          max-height: 400px;
+          overflow: auto;
+          border: 1px solid #a1a1a1;
+          border-radius: 6px;
+          padding: 8px;
+        }
+        #navigator {
+          width: 80%;
+        }
+        td.link {
+          width: 30%;
+          max-width: 200px;
+        }
       }
     </style>
   </head>
@@ -144,12 +186,12 @@
         if (["movie", "soap"].includes(detail)) {
           Promise.all([
             System.import(`/${detail}1.json`),
-            System.import(`/${detail}2.json`)
+            System.import(`/${detail}2.json`),
           ]).then((modules) => {
-            console.log({modules})
+            console.log({ modules });
             const data1 = modules[0].default.data;
             const data2 = modules[1].default.data;
-            data = {...data1, ...data2};
+            data = { ...data1, ...data2 };
             propertyList = modules[0].default.propertyList;
             const keys = Object.keys(data);
             renderData = keys.map((key) => ({
@@ -192,13 +234,21 @@
         // console.log(id, "id", renderData)
         const currentData = renderData.find((item) => item.id == id).data;
         const descript = getDataFromArray(currentData, "vod_blurb");
+        const actor = getDataFromArray(currentData, "vod_actor");
+        const picUrl = getDataFromArray(currentData, "vod_pic");
         const tempUrl = getDataFromArray(currentData, "vod_play_url");
         const urls = tempUrl.split("#").map((item) => item.split("$"));
         // console.log(urls, "urls")
         $videoInfo.innerHTML = `
             <h4>${currentData[1]}</h4>
-            <p>${descript}</p>
-            <div class="">
+            <div class="video-detail">
+              <img src="${picUrl}" />
+              <div>
+                <p>主演：${actor}</p>
+                <p>${descript}</p>
+              </div>
+            </div>
+            <div class="eption-wrapper">
                 ${urls
                   .map(
                     (item) =>
@@ -220,6 +270,14 @@
           `table tr[data-id='${info[0]}']`
         );
         activeTr && activeTr.setAttribute("class", "active");
+        const oldActiveEption = document.querySelector(
+          `#current-video-info a[class*='active']`
+        );
+        oldActiveEption && oldActiveEption.setAttribute("class", "eption");
+        const activeEption = document.querySelector(
+          `#current-video-info a[href$='${info[1]}']`
+        );
+        activeEption && activeEption.setAttribute("class", "eption active");
       };
     </script>
   </body>
