@@ -33,15 +33,19 @@ const {
   wujin: { data, propertyList, lastTime },
 } = db.data;
 
-const movieIds = [1, 6, 7, 8, 9, 10, 11, 12, 21, 32, 33, 34, 35, 36];
-const soapIds = [2, 13, 14, 15, 16, 22, 23, 24, 37];
+const movie1Ids = [1, 6, 7, 8, 9];
+const movie2Ids = [10, 11, 12, 32, 34, 35, 36];
+const soap1Ids = [2, 13, 14, 15];
+const soap2Ids = [16, 22, 23, 24, 37];
 const zongYiIds = [3, 25, 26, 27, 28];
-const animationIds = [4, 29, 30, 31];
-const gameIds = [5, 17, 18, 38, 39];
+const animationIds = [4, 29, 30, 31, 33];
+const gameIds = [5, 17, 18, 21, 38, 39];
 const specIds = [20];
 
-const movieData = {};
-const soapData = {};
+const movie1Data = {};
+const movie2Data = {};
+const soap1Data = {};
+const soap2Data = {};
 const zongYiData = {};
 const animationData = {};
 const gameData = {};
@@ -51,11 +55,17 @@ Object.keys(data).forEach((key) => {
   const restoreData = JSON.parse(data[key]);
   const typeId = restoreData[5];
   switch (true) {
-    case movieIds.includes(typeId):
-        movieData[key] = data[key];
+    case movie1Ids.includes(typeId):
+        movie1Data[key] = data[key];
         break;
-    case soapIds.includes(typeId):
-        soapData[key] = data[key];
+    case movie2Ids.includes(typeId):
+        movie2Data[key] = data[key];
+        break;
+    case soap1Ids.includes(typeId):
+        soap1Data[key] = data[key];
+        break;
+    case soap2Ids.includes(typeId):
+        soap2Data[key] = data[key];
         break;
     case zongYiIds.includes(typeId):
         zongYiData[key] = data[key];
@@ -73,8 +83,10 @@ Object.keys(data).forEach((key) => {
 });
 
 async function splitFiles() {
-    await writeFile(`static/movie.json`, JSON.stringify({data: movieData, propertyList, lastTime}));
-    await writeFile(`static/soap.json`, JSON.stringify({data: soapData, propertyList, lastTime}));
+    await writeFile(`static/movie1.json`, JSON.stringify({data: movie1Data, propertyList, lastTime}));
+    await writeFile(`static/movie2.json`, JSON.stringify({data: movie2Data, propertyList, lastTime}));
+    await writeFile(`static/soap1.json`, JSON.stringify({data: soap1Data, propertyList, lastTime}));
+    await writeFile(`static/soap2.json`, JSON.stringify({data: soap2Data, propertyList, lastTime}));
     await writeFile(`static/zongYi.json`, JSON.stringify({data: zongYiData, propertyList, lastTime}));
     await writeFile(`static/animation.json`, JSON.stringify({data: animationData, propertyList, lastTime}));
     await writeFile(`static/game.json`, JSON.stringify({data: gameData, propertyList, lastTime}));

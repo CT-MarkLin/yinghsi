@@ -1,0 +1,226 @@
+<html>
+  <head>
+    <script src="https://cdn.jsdelivr.net/npm/systemjs/dist/system.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+    <style>
+      #root {
+        width: 80%;
+        max-width: 1200px;
+        max-height: 80%;
+        overflow: auto;
+        border: 1px solid #a1a1a1;
+        border-radius: 6px;
+        padding: 8px;
+      }
+      td {
+        white-space: nowrap;
+        padding: 4px 8px;
+      }
+      td.link {
+        width: 40%;
+        max-width: 300px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .filter-bar {
+        width: 50%;
+        max-width: 600px;
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 20px;
+      }
+      #searchInput,
+      #searchButton {
+        height: 36px;
+        line-height: 36px;
+        font-size: 24px;
+      }
+      #play-info {
+        margin: 20px auto;
+        width: 100%;
+      }
+      #video {
+        width: 75%;
+        margin-top: 10px;
+      }
+      .eption {
+        padding: 2px 4px;
+      }
+      #navigator {
+        width: 50%;
+        display: flex;
+        justify-content: space-between;
+        font-size: 20px;
+        margin-bottom: 10px;
+      }
+      .active {
+        background-color: yellowgreen;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="navigator">
+      <a href="/?type=movie">电影</a>
+      <a href="/?type=soap">电视剧</a>
+      <a href="/?type=animation">动漫</a>
+      <a href="/?type=zongYi">综艺</a>
+      <a href="/?type=game">赛事</a>
+    </div>
+    <div class="filter-bar">
+      <input placeholder="输入影片名" id="searchInput" />
+      <button id="searchButton">Search</button>
+    </div>
+    <div id="root"></div>
+    <div id="play-info">
+      <div id="current-video-info"></div>
+      <video id="video" controls autoplay></video>
+    </div>
+    <script>
+      // common variables
+      let data = [];
+      let renderData = [];
+      let propertyList = [];
+      const $root = document.getElementById("root");
+      const $navigator = document.getElementById("navigator");
+      const $input = document.getElementById("searchInput");
+      const $search = document.getElementById("searchButton");
+      const $video = document.getElementById("video");
+      const $videoInfo = document.getElementById("current-video-info");
+      let loadVideo;
+
+      if (Hls.isSupported()) {
+        const hls = new Hls();
+        hls.attachMedia($video);
+
+        hls.on(Hls.Events.MEDIA_ATTACHED, () => {
+          loadVideo = (url) => {
+            hls.loadSource(url);
+          };
+        });
+      }
+
+      const getDataFromArray = (itemData, key) => {
+        const ind = propertyList.indexOf(key);
+        return itemData[ind] || "";
+      };
+    </script>
+    <script>
+      $search.onclick = () => {
+        const value = $input.value;
+        render(
+          renderData
+            .filter((item) => item.data[1].includes(value))
+            .slice(0, 100)
+        );
+      };
+
+      function render(tempData = []) {
+        $root.innerHTML = `
+            <table>
+            <tbody>
+                ${tempData
+                  .map((item, index) => {
+                    return `
+                        <tr data-id="${item.data[0]}">
+                            <td>${index + 1}</td>
+                            <td class="link">
+                                <a href="#${item.data[0]}">
+                                    ${item.data[1]}
+                                </a>
+                            </td>
+                            <td>${item.data[2]}</td>
+                            <td>${item.data[3]}</td>
+                            <td>${getDataFromArray(item.data, "vod_year")}</td>
+                        </tr>
+                    `;
+                  })
+                  .join("")}
+            </tbody>
+            </table>
+        `;
+      }
+      // detail: animation, game, movie, soap, zongYi
+      function loadJSON(detail) {
+        if (["movie", "soap"].includes(detail)) {
+          Promise.all([
+            System.import(`/${detail}1.json`),
+            System.import(`/${detail}2.json`)
+          ]).then((modules) => {
+            console.log({modules})
+            const data1 = modules[0].default.data;
+            const data2 = modules[1].default.data;
+            data = {...data1, ...data2};
+            propertyList = modules[0].default.propertyList;
+            const keys = Object.keys(data);
+            renderData = keys.map((key) => ({
+              id: key,
+              data: JSON.parse(data[key]),
+            }));
+            render(renderData.slice(0, 100));
+            setTimeout(() => window.onhashchange(), 100);
+          });
+          return;
+        }
+        System.import(`/${detail}.json`).then((module) => {
+          data = module.default.data;
+          propertyList = module.default.propertyList;
+          const keys = Object.keys(data);
+          renderData = keys.map((key) => ({
+            id: key,
+            data: JSON.parse(data[key]),
+          }));
+          render(renderData.slice(0, 100));
+          setTimeout(() => window.onhashchange(), 100);
+        });
+      }
+
+      window.onload = () => {
+        const typeReg = /type=(\w+)/;
+        const path = location.search.match(typeReg);
+        const activeElement = $navigator.querySelector(
+          `a[href*=${path && path[1]}]`
+        );
+        activeElement && activeElement.setAttribute("class", "active");
+        loadJSON(path && path[1]);
+      };
+    </script>
+    <script>
+      const onIdChange = (id) => {
+        if (!id) {
+          return;
+        }
+        // console.log(id, "id", renderData)
+        const currentData = renderData.find((item) => item.id == id).data;
+        const descript = getDataFromArray(currentData, "vod_blurb");
+        const tempUrl = getDataFromArray(currentData, "vod_play_url");
+        const urls = tempUrl.split("#").map((item) => item.split("$"));
+        // console.log(urls, "urls")
+        $videoInfo.innerHTML = `
+            <h4>${currentData[1]}</h4>
+            <p>${descript}</p>
+            <div class="">
+                ${urls
+                  .map(
+                    (item) =>
+                      `<a class="eption" onclick="loadVideo('${item[1]}')" href="#${id}----${item[0]}">${item[0]}</a>`
+                  )
+                  .join("")}
+            </div>
+        `;
+      };
+      window.onhashchange = (evt) => {
+        const info = location.hash
+          .replace("#", "")
+          .split("----")
+          .map((item) => decodeURIComponent(item));
+        onIdChange(info[0]);
+        const oldActive = document.querySelector(`table tr[class='active']`);
+        oldActive && oldActive.setAttribute("class", "");
+        const activeTr = document.querySelector(
+          `table tr[data-id='${info[0]}']`
+        );
+        activeTr && activeTr.setAttribute("class", "active");
+      };
+    </script>
+  </body>
+</html>
