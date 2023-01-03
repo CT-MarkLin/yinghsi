@@ -29,15 +29,10 @@
         justify-content: space-between;
         margin-bottom: 20px;
       }
-      #searchInput {
-        height: 48px;
-        line-height: 48px;
-        font-size: 28px;
-      }
-      #searchButton {
-        height: 48px;
-        line-height: 48px;
-        font-size: 28px;
+      #searchInput, #searchButton {
+        height: 36px;
+        line-height: 36px;
+        font-size: 24px;
       }
       #play-info {
         margin: 20px auto;
@@ -45,13 +40,31 @@
       }
       #video {
         width: 75%;
+        margin-top: 10px;
       }
       .eption {
         padding: 2px 4px;
       }
+      #navigator {
+        width: 50%;
+        display: flex;
+        justify-content: space-between;
+        font-size: 20px;
+        margin-bottom: 10px;
+      }
+      .active {
+        background-color: yellowgreen;
+      }
     </style>
   </head>
   <body>
+    <div id="navigator">
+        <a href="/?type=movie">电影</a>
+        <a href="/?type=soap">电视剧</a>
+        <a href="/?type=animation">动漫</a>
+        <a href="/?type=zongYi">综艺</a>
+        <a href="/?type=game">赛事</a>
+    </div>
     <div class="filter-bar">
       <input placeholder="输入影片名" id="searchInput" />
       <button id="searchButton">Search</button>
@@ -59,7 +72,7 @@
     <div id="root"></div>
     <div id="play-info">
       <div id="current-video-info"></div>
-      <video id="video" controls></video>
+      <video id="video" controls autoplay></video>
     </div>
     <script>
       // common variables
@@ -67,6 +80,7 @@
       let renderData = [];
       let propertyList = [];
       const $root = document.getElementById("root");
+      const $navigator = document.getElementById("navigator");
       const $input = document.getElementById("searchInput");
       const $search = document.getElementById("searchButton");
       const $video = document.getElementById("video");
@@ -99,27 +113,6 @@
         );
       };
 
-      const onItemClick = (id) => {
-        // console.log(id, "id", renderData)
-        const currentData = renderData.find((item) => item.id == id).data;
-        const descript = getDataFromArray(currentData, "vod_blurb");
-        const tempUrl = getDataFromArray(currentData, "vod_play_url");
-        const urls = tempUrl.split("#").map((item) => item.split("$"));
-        console.log(urls, "urls")
-        $videoInfo.innerHTML = `
-            <h4>${currentData[1]}</h4>
-            <p>${descript}</p>
-            <div class="">
-                ${urls
-                  .map(
-                    (item) =>
-                      `<a class="eption" onclick="loadVideo('${item[1]}')" href="#${id}/${item[0]}">${item[0]}</a>`
-                  )
-                  .join("")}
-            </div>
-        `;
-      };
-
       function render(tempData = []) {
         $root.innerHTML = `
             <table>
@@ -130,9 +123,7 @@
                         <tr data-id="${item.data[0]}">
                             <td>${index + 1}</td>
                             <td class="link">
-                                <a onclick="onItemClick(${
-                                  item.data[0]
-                                })" href="#${item.data[0]}">
+                                <a href="#${item.data[0]}">
                                     ${item.data[1]}
                                 </a>
                             </td>
@@ -147,22 +138,60 @@
             </table>
         `;
       }
+      // detail: animation, game, movie, soap, zongYi
+      function loadJSON(detail) {
+        System.import(`/static/${detail}.json`).then((module) => {
+            data = module.default.data;
+            propertyList = module.default.propertyList;
+            const keys = Object.keys(data);
+            renderData = keys.map((key) => ({
+            id: key,
+            data: JSON.parse(data[key]),
+            }));
+            render(renderData.slice(0, 100));
+            setTimeout(() => window.onhashchange(), 100)
+        });
+      }
 
-      System.import(
-        "https://ct-marklin.github.io/yinghsi/static/animation.json"
-      ).then(function (module) {
-        data = module.default.data;
-        propertyList = module.default.propertyList;
-        const keys = Object.keys(data);
-        renderData = keys.map((key) => ({
-          id: key,
-          data: JSON.parse(data[key]),
-        }));
-        render(renderData.slice(0, 100));
-        // if (loadVideo) {
-        //   loadVideo("https://new.qqaku.com/20220715/mHbbdXI0/index.m3u8");
-        // }
-      });
+      window.onload = () => {
+        const typeReg = /type=(\w+)/
+        const path = location.search.match(typeReg);
+        const activeElement = $navigator.querySelector(`a[href*=${path && path[1]}]`);
+        activeElement && activeElement.setAttribute("class", "active");
+        loadJSON(path && path[1]);
+      }
+    </script>
+    <script>
+      const onIdChange = (id) => {
+        // console.log(id, "id", renderData)
+        const currentData = renderData.find((item) => item.id == id).data;
+        const descript = getDataFromArray(currentData, "vod_blurb");
+        const tempUrl = getDataFromArray(currentData, "vod_play_url");
+        const urls = tempUrl.split("#").map((item) => item.split("$"));
+        // console.log(urls, "urls")
+        $videoInfo.innerHTML = `
+            <h4>${currentData[1]}</h4>
+            <p>${descript}</p>
+            <div class="">
+                ${urls
+                  .map(
+                    (item) =>
+                      `<a class="eption" onclick="loadVideo('${item[1]}')" href="#${id}----${item[0]}">${item[0]}</a>`
+                  )
+                  .join("")}
+            </div>
+        `;
+      };
+      window.onhashchange = (evt) => {
+        const info = location.hash.replace("#","")
+          .split("----")
+          .map((item) => decodeURIComponent(item));
+        onIdChange(info[0]);
+        const oldActive = document.querySelector(`table tr[class='active']`);
+        oldActive && oldActive.setAttribute("class", "");
+        const activeTr = document.querySelector(`table tr[data-id='${info[0]}']`);
+        activeTr && activeTr.setAttribute("class", "active");
+      };
     </script>
   </body>
 </html>
