@@ -64,6 +64,20 @@ export async function getWujinListFromAPI(page = 1) {
   // console.log(data.textContent);
 }
 
+export async function getShandianListFromAPI(page = 1) {
+  const res = await axios.get(
+    `https://sdzyapi.com/api.php/provide/vod/?ac=detail&pg=${page}`
+  );
+  return res.data;
+}
+
+export async function getLiangZiListFromAPI(page = 1) {
+  const res = await axios.get(
+    `https://cj.lziapi.com/api.php/provide/vod/?ac=detail&pg=${page}`
+  );
+  return res.data;
+}
+
 export const propertyList = [
   "vod_id",
   "vod_name",

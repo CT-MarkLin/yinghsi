@@ -6,6 +6,10 @@
   "scripts": {
     "update": "node db2_update.mjs && node db2_split.mjs",
     "preview": "esbuild --servedir=./static --serve=0.0.0.0:8080",
+    "update3": "cd shandian && node db3_update.mjs && node db3_split.mjs",
+    "preview3": "esbuild --servedir=./shandian/static --serve=0.0.0.0:8080",
+    "update4": "cd liangzi && node db4_update.mjs && node db4_split.mjs",
+    "preview4": "esbuild --servedir=./liangzi/static --serve=0.0.0.0:8080",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",

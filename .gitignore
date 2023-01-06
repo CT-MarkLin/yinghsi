@@ -2,7 +2,9 @@
 
 # compiled output
 /dist
-/static/spec.json
+**/db4.json
+!**/static/*.json
+**/static/spec.json
 /tmp
 /out-tsc
 # Only exists if Bazel was run
