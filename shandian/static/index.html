@@ -1,5 +1,6 @@
 <html>
   <head>
+    <title>Liang Zi</title>
     <meta
       content="width=device-width; initial-scale=1.0; maximum-scale=1.0; user-scalable=0"
       name="viewport"
@@ -27,10 +28,10 @@
         text-overflow: ellipsis;
       }
       .filter-bar {
-        width: 50%;
+        width: 60%;
         max-width: 600px;
         display: flex;
-        justify-content: space-between;
+        justify-content: flex-start;
         margin-bottom: 20px;
       }
       #searchInput,
@@ -38,6 +39,9 @@
         height: 36px;
         line-height: 36px;
         font-size: 24px;
+      }
+      #searchButton {
+        margin-left: 10px;
       }
       #play-info {
         margin: 20px auto;
@@ -54,6 +58,9 @@
         display: flex;
         justify-content: flex-start;
         flex-wrap: wrap;
+        border: 1px solid #a1a1a1;
+        border-radius: 6px;
+        padding: 8px;
       }
       .eption,
       .area-item {
@@ -81,6 +88,10 @@
       .active {
         background-color: yellowgreen;
       }
+      #sort-field {
+        font-size: 18px;
+        margin: 20px 0;
+      }
       @media screen and (max-width: 600px) {
         * {
           font-size: 20px;
@@ -103,6 +114,9 @@
           width: 30%;
           max-width: 200px;
         }
+        .filter-bar {
+          width: 80%;
+        }
       }
     </style>
   </head>
@@ -115,21 +129,33 @@
       <a href="/?type=game">赛事</a>
     </div>
     <div class="filter-bar">
-      <input placeholder="输入影片名" id="searchInput" />
-      <button id="searchButton">Search</button>
+      <input placeholder="输入影片/演员/导演名" id="searchInput" />
+      <button id="searchButton">搜索</button>
     </div>
     <div id="area-info"></div>
+    <div style="font-size: 20px">
+      排序：
+      <select id="sort-field" onchange="render(renderData)">
+        <option value="">无</option>
+        <option value="type_name">类型</option>
+        <option value="vod_douban_score">评分</option>
+        <option value="vod_year">年份</option>
+      </select>
+    </div>
     <div id="root"></div>
     <div id="play-info">
       <div id="current-video-info"></div>
-      <video id="video" controls autoplay></video>
+      <video id="video" controls preload="auto" autoplay></video>
     </div>
     <script>
       // common variables
       let data = [];
       let renderData = [];
       let propertyList = [];
+      // -------- Filter variables ------------
+      let searchValue = "";
       let selectedArea = "all";
+      // --------------------------------------
       const $root = document.getElementById("root");
       const $navigator = document.getElementById("navigator");
       const $input = document.getElementById("searchInput");
@@ -137,6 +163,8 @@
       const $video = document.getElementById("video");
       const $videoInfo = document.getElementById("current-video-info");
       const $areaInfo = document.getElementById("area-info");
+      const $sortField = document.getElementById("sort-field");
+
       let loadVideo;
       let onAreaClick;
 
@@ -159,29 +187,20 @@
     <script>
       $search.onclick = () => {
         const value = $input.value;
-        render(
-          renderData
-            .filter((item) => item.data[1].includes(value))
-            .slice(0, 100)
-        );
+        searchValue = value;
+        render(renderData);
       };
 
       function renderArea(tempData = []) {
         const allArea = tempData.flatMap((item) =>
           getDataFromArray(item.data, "vod_area").split(/[\/,]/)
         );
-        const uniqArea = Array.from(new Set(allArea)).filter(item => item);
+        const uniqArea = Array.from(new Set(allArea)).filter((item) => item);
         // console.log({uniqArea})
         onAreaClick = (area) => {
           selectedArea = area;
           renderArea(tempData);
-          render(
-            renderData.filter((item, ind) =>
-              selectedArea === "all"
-                ? ind < 100
-                : getDataFromArray(item.data, "vod_area").includes(selectedArea)
-            )
-          );
+          render(renderData);
         };
         $areaInfo.innerHTML = `
         <a class="area-item ${
@@ -202,10 +221,33 @@
       }
 
       function render(tempData = []) {
+        let filterData = tempData.filter(
+          (item) =>
+            (getDataFromArray(item.data, "vod_name").includes(searchValue) ||
+              getDataFromArray(item.data, "vod_actor").includes(searchValue) ||
+              getDataFromArray(item.data, "vod_director").includes(
+                searchValue
+              )) &&
+            getDataFromArray(item.data, "vod_area").includes(
+              selectedArea === "all" ? "" : selectedArea
+            )
+        );
+        if (searchValue === "" && selectedArea === "all") {
+          filterData = tempData.slice(0, 100);
+        }
+        const sortField = $sortField.value;
+        if (sortField) {
+          filterData.sort((a, b) =>
+            getDataFromArray(a.data, sortField) <
+            getDataFromArray(b.data, sortField)
+              ? 1
+              : -1
+          );
+        }
         $root.innerHTML = `
             <table>
             <tbody>
-                ${tempData
+                ${filterData
                   .map((item, index) => {
                     return `
                         <tr data-id="${item.data[0]}">
@@ -217,8 +259,14 @@
                             </td>
                             <td>${item.data[2]}</td>
                             <td>${item.data[3]}</td>
-                            <td>${getDataFromArray(item.data, "vod_score")}</td>
-                            <td>${getDataFromArray(item.data, "vod_year")}</td>
+                            <td>${getDataFromArray(
+                              item.data,
+                              "vod_douban_score"
+                            )}</td>
+                            <td>${
+                              getDataFromArray(item.data, "vod_pubdate") ||
+                              getDataFromArray(item.data, "vod_year")
+                            }</td>
                         </tr>
                     `;
                   })
@@ -234,7 +282,7 @@
             System.import(`/${detail}1.json`),
             System.import(`/${detail}2.json`),
           ]).then((modules) => {
-            console.log({ modules });
+            // console.log({ modules });
             const data1 = modules[0].default.data;
             const data2 = modules[1].default.data;
             data = { ...data1, ...data2 };
@@ -244,7 +292,7 @@
               id: key,
               data: JSON.parse(data[key]),
             }));
-            render(renderData.slice(0, 100));
+            render(renderData);
             renderArea(renderData);
             setTimeout(() => window.onhashchange(), 100);
           });
@@ -258,7 +306,7 @@
             id: key,
             data: JSON.parse(data[key]),
           }));
-          render(renderData.slice(0, 100));
+          render(renderData);
           renderArea(renderData);
           setTimeout(() => window.onhashchange(), 100);
         });
@@ -282,6 +330,7 @@
         // console.log(id, "id", renderData)
         const currentData = renderData.find((item) => item.id == id).data;
         const descript = getDataFromArray(currentData, "vod_blurb");
+        const director = getDataFromArray(currentData, "vod_director");
         const actor = getDataFromArray(currentData, "vod_actor");
         const picUrl = getDataFromArray(currentData, "vod_pic");
         const tempUrl = getDataFromArray(currentData, "vod_play_url");
@@ -295,6 +344,7 @@
             <div class="video-detail">
               <img src="${picUrl}" />
               <div>
+                <p>导演：${director}</p>
                 <p>主演：${actor}</p>
                 <p>${descript}</p>
               </div>
