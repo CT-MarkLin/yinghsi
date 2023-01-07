@@ -1,6 +1,6 @@
 <html>
   <head>
-    <title>Liang Zi</title>
+    <title>Shan dian</title>
     <meta
       content="width=device-width; initial-scale=1.0; maximum-scale=1.0; user-scalable=0"
       name="viewport"
@@ -35,7 +35,7 @@
         margin-bottom: 20px;
       }
       #searchInput,
-      #searchButton {
+      #searchButton, #updateBtn {
         height: 36px;
         line-height: 36px;
         font-size: 24px;
@@ -121,6 +121,9 @@
     </style>
   </head>
   <body>
+    <div style="text-align: right;">
+      <button id="updateBtn">更新剧集...</button>
+    </div>
     <div id="navigator">
       <a href="/?type=movie">电影</a>
       <a href="/?type=soap">电视剧</a>
@@ -160,6 +163,7 @@
       const $navigator = document.getElementById("navigator");
       const $input = document.getElementById("searchInput");
       const $search = document.getElementById("searchButton");
+      const $update = document.getElementById("updateBtn");
       const $video = document.getElementById("video");
       const $videoInfo = document.getElementById("current-video-info");
       const $areaInfo = document.getElementById("area-info");
@@ -189,6 +193,9 @@
         const value = $input.value;
         searchValue = value;
         render(renderData);
+      };
+      $update.onclick = () => {
+        fetch("https://yingshi.deno.dev")
       };
 
       function renderArea(tempData = []) {
