@@ -35,7 +35,8 @@
         margin-bottom: 20px;
       }
       #searchInput,
-      #searchButton, #updateBtn {
+      #searchButton,
+      #updateBtn {
         height: 36px;
         line-height: 36px;
         font-size: 24px;
@@ -121,7 +122,7 @@
     </style>
   </head>
   <body>
-    <div style="text-align: right;">
+    <div style="text-align: right">
       <button id="updateBtn">更新剧集...</button>
     </div>
     <div id="navigator">
@@ -171,17 +172,19 @@
 
       let loadVideo;
       let onAreaClick;
+      let hls;
 
-      if (Hls.isSupported()) {
-        const hls = new Hls();
-        hls.attachMedia($video);
+      loadVideo = (url) => {
+        if (Hls.isSupported()) {
+          hls && hls.destroy();
+          hls = new Hls();
+          hls.attachMedia($video);
 
-        hls.on(Hls.Events.MEDIA_ATTACHED, () => {
-          loadVideo = (url) => {
+          hls.on(Hls.Events.MEDIA_ATTACHED, () => {
             hls.loadSource(url);
-          };
-        });
-      }
+          });
+        }
+      };
 
       const getDataFromArray = (itemData, key) => {
         const ind = propertyList.indexOf(key);
@@ -195,7 +198,7 @@
         render(renderData);
       };
       $update.onclick = () => {
-        fetch("https://yingshi.deno.dev")
+        fetch("https://yingshi.deno.dev");
       };
 
       function renderArea(tempData = []) {
