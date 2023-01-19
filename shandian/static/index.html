@@ -144,6 +144,7 @@
         <option value="type_name">类型</option>
         <option value="vod_douban_score">评分</option>
         <option value="vod_year">年份</option>
+        <option value="vod_time">最近更新时间</option>
       </select>
     </div>
     <div id="root"></div>
@@ -277,6 +278,9 @@
                               getDataFromArray(item.data, "vod_pubdate") ||
                               getDataFromArray(item.data, "vod_year")
                             }</td>
+                            <td>${
+                              getDataFromArray(item.data, "vod_time")
+                            }</td>
                         </tr>
                     `;
                   })
@@ -344,6 +348,7 @@
         const actor = getDataFromArray(currentData, "vod_actor");
         const picUrl = getDataFromArray(currentData, "vod_pic");
         const tempUrl = getDataFromArray(currentData, "vod_play_url");
+        const doubanId = getDataFromArray(currentData, "vod_douban_id");
         const urls = tempUrl
           .split("$$$")[1]
           .split("#")
@@ -359,6 +364,10 @@
                 <p>${descript}</p>
               </div>
             </div>
+            <details>
+                <summary>豆瓣：</summary>
+                <iframe width="90%" height="50%" src="https://movie.douban.com/subject/${doubanId}"></iframe>
+            </details>
             <div class="eption-wrapper">
                 ${urls
                   .map(
