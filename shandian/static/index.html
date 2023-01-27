@@ -199,7 +199,15 @@
         render(renderData);
       };
       $update.onclick = () => {
-        fetch("https://yingshi.deno.dev");
+        fetch("https://yingshi.deno.dev").then(res => res.json()).then(res=> {
+          const lastRunningTime = res.lastRunningTime;
+          const message = res.message;
+          $update.innerHTML = `${message}上次更新:${new Date(lastRunningTime).toLocaleString()}`;
+          $update.setAttribute("disabled", "true");
+          setTimeout(() => {
+            $update.setAttribute("disabled", "false");
+          }, 1000*60*10);
+        });
       };
 
       function renderArea(tempData = []) {
@@ -334,6 +342,7 @@
         );
         activeElement && activeElement.setAttribute("class", "active");
         loadJSON(path && path[1]);
+        $update.onclick();
       };
     </script>
     <script>
